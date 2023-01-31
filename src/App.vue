@@ -28,7 +28,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { message } from "ant-design-vue";
-import { ImportExcel, ExcelData } from "@fed-material/ui-web";
+import { ImportExcel } from "@fed-material/ui-web";
 import * as echarts from "echarts";
 type EChartsOption = echarts.EChartsOption;
 
@@ -47,9 +47,9 @@ function beforeUpload(file: File) {
 
 // 文件解析回调
 const excelData = ref();
-function loadDataSuccess(excelDataList: ExcelData[]) {
+function loadDataSuccess(excelDataList: any[]) {
   if (excelDataList[0].results) {
-    excelData.value = excelDataList[0].results.map((item) => {
+    excelData.value = excelDataList[0].results.map((item: any) => {
       return {
         time: item["__time__"],
         errorName: item["error_name"],
@@ -73,6 +73,7 @@ function setBarOption(list: any[]) {
   // 设置x/y轴数据
   let axis: any = {};
   list.forEach((item) => {
+    if (!item.errorContent) return;
     if (axis[item.errorCode]) {
       axis[item.errorCode]++;
     } else {
