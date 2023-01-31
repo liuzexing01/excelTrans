@@ -1,0 +1,52 @@
+{
+  "files": [],
+  "compilerOptions": {
+    "noImplicitThis": false,
+    "allowSyntheticDefaultImports": true, // 允许从没有设置默认导出的模块中默认导入。这并不影响代码的输出，仅为了类型检查
+    "baseUrl": ".", // 解析非相对模块名的基准目录
+    "esModuleInterop": true,
+    "importHelpers": true, // 从 tslib 导入辅助工具函数（比如 __extends， __rest等）
+    "module": "esnext", // 指定生成哪个模块系统代码
+    "moduleResolution": "node", // 决定如何处理模块。
+    "strict": true, // 启用所有严格类型检查选项。
+    "sourceMap": true,
+    "allowJs": true,
+    "target": "esnext", // 指定ECMAScript目标版本
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ], // 编译过程中需要引入的库文件的列表
+    "types": ["@types/webpack-env"],
+    "typeRoots": ["./node_modules/@types/", "./types"]
+  },
+  "references": [
+    {
+      "path": "./tsconfig.config.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.vitest.json"
+    }
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "idb-js"
+  ]
+}
+
