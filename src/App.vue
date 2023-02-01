@@ -6,7 +6,11 @@
     :before-upload="beforeUpload"
   >
     <AButton type="primary">上传文件</AButton>
+    <AButton type="primary" class="down" @click.stop="downloadErrorCode"
+      >下载完整错误码</AButton
+    >
   </ImportExcel>
+
   <a-tabs v-model:activeKey="activeKey" class="tab">
     <a-tab-pane key="1" tab="柱状图" force-render>
       <div id="barChart" :style="{ height: `${height}px` }"></div>
@@ -22,13 +26,33 @@
         >
       </a-tree>
     </a-tab-pane>
+
+    <a-tab-pane key="3" tab="未配置错误码树形结构图" force-render>
+      <AButton
+        type="primary"
+        class="down"
+        @click="downloadUnsetCode"
+        v-if="unsetCode?.length"
+        >下载未设置错误码</AButton
+      >
+      <a-tree
+        class="tree"
+        :tree-data="unsetCode"
+        :fieldNames="{ children: 'child', title: 'name', key: 'name' }"
+      >
+        <template #title="{ name, count }">
+          {{ name }} ，数量{{ count }}</template
+        >
+      </a-tree>
+    </a-tab-pane>
   </a-tabs>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { message } from "ant-design-vue";
 import { ImportExcel } from "@fed-material/ui-web";
+import * as xlsx from "xlsx";
 import * as echarts from "echarts";
 type EChartsOption = echarts.EChartsOption;
 
@@ -123,6 +147,8 @@ function setBarOption(list: any[]) {
     option && barChart.setOption(option);
   }, 0);
 }
+
+//设置树形列表
 const treeData = ref([]);
 function setTreeList(list: any[]) {
   let treeList: any = {};
@@ -132,6 +158,7 @@ function setTreeList(list: any[]) {
       treeList[item.errorCode] = {
         count: 0,
         name: "错误码：" + item.errorCode,
+        code: item.errorCode,
         child: {},
       };
     }
@@ -144,6 +171,8 @@ function setTreeList(list: any[]) {
         child[item.errorContent] = {
           count: 1,
           name: "错误内容：" + item.errorContent,
+          content: item.errorContent,
+          code: item.errorCode,
           time: item.time,
         };
       }
@@ -157,6 +186,99 @@ function setTreeList(list: any[]) {
       });
     }
   });
+  getUnsetCode(treeData.value);
+}
+
+// 下载表格
+async function downloadErrorCode() {
+  if (!errorCode.value) return;
+  let errorList = [];
+  for (let key in errorCode) {
+    let errorItem = errorCode.value[key];
+    let item: any = {};
+    item.code = key;
+    errorItem.forEach((err: any) => {
+      switch (true) {
+        case err.tags.includes("default"):
+          item.default = err.message;
+          break;
+        case err.tags.includes("bms"):
+          item.bms = err.message;
+          break;
+        case err.tags.includes("cloud"):
+          item.cloud = err.message;
+          break;
+        case err.tags.includes("business"):
+          item.business = err.message;
+          break;
+        case err.tags.includes("appointment"):
+          item.appointment = err.message;
+          break;
+        case err.tags.includes("laisi"):
+          item.laisi = err.message;
+          break;
+      }
+    });
+    errorList.push(item);
+  }
+  downloadExcel(errorList);
+}
+
+function downloadExcel(list: any) {
+  let ws = xlsx.utils.json_to_sheet(list); //通过工具将json转表对象
+  // 创建 workbook
+  const wb = xlsx.utils.book_new();
+  // 生成xlsx文件(book,sheet数据,sheet命名)
+  xlsx.utils.book_append_sheet(wb, ws, "sheet1");
+  // 写文件(book,xlsx文件名称)
+  xlsx.writeFile(wb, "错误码.xlsx");
+}
+
+const errorCode = ref();
+function getErrorCode() {
+  return new Promise(function (resolve, reject) {
+    let xhr = new XMLHttpRequest();
+    xhr.timeout = 10000;
+    xhr.onload = function () {
+      if (this.status >= 200 && this.status < 300) {
+        resolve(this.response);
+      } else {
+        reject(false);
+      }
+    };
+    xhr.onerror = function () {
+      reject();
+    };
+    xhr.open("GET", "https://cdn.fed.hzmantu.com/error_code_build2.json");
+    xhr.send();
+  });
+}
+onMounted(async () => {
+  let res = await getErrorCode();
+  if (!res) return;
+  errorCode.value = JSON.parse(res as string);
+});
+
+const unsetCode = ref();
+function getUnsetCode(list: any) {
+  unsetCode.value = list.filter((item: any) => {
+    return !errorCode.value["0x" + item.code.toString(16)];
+  });
+}
+
+function downloadUnsetCode() {
+  let list: any[] = [];
+  unsetCode.value.forEach((item: any) => {
+    list = list.concat(Object.values(item.child));
+  });
+  let exportList = list.map((item) => {
+    return {
+      错误码: item.code,
+      数量: item.count,
+      错误内容: item.content,
+    };
+  });
+  downloadExcel(exportList);
 }
 </script>
 
@@ -170,5 +292,8 @@ function setTreeList(list: any[]) {
 }
 .tab {
   margin-top: 20px;
+}
+.down {
+  margin-left: 10px;
 }
 </style>
