@@ -33,8 +33,9 @@
         class="down"
         @click="downloadUnsetCode"
         v-if="unsetCode?.length"
-        >下载未设置错误码</AButton
       >
+        下载未设置错误码
+      </AButton>
       <a-tree
         class="tree"
         :tree-data="unsetCode"
@@ -79,6 +80,7 @@ function loadDataSuccess(excelDataList: any[]) {
         errorName: item["error_name"],
         errorContent: item["error_content"],
         errorCode: item["error_code"],
+        count: item["count"] || 0,
       };
     });
   }
@@ -144,11 +146,12 @@ function setBarOption(list: any[]) {
   setTimeout(() => {
     let chartDom = document.getElementById("barChart")!;
     let barChart = echarts.init(chartDom);
-    option && barChart.setOption(option);
+    barChart.setOption(option);
+    barChart.resize();
   }, 0);
 }
 
-//设置树形列表
+//设置树形列表process
 const treeData = ref([]);
 function setTreeList(list: any[]) {
   let treeList: any = {};
@@ -163,13 +166,21 @@ function setTreeList(list: any[]) {
       };
     }
     if (treeList[item.errorCode]) {
-      treeList[item.errorCode].count++;
+      if (item.count) {
+        treeList[item.errorCode].count += item.count;
+      } else {
+        treeList[item.errorCode].count++;
+      }
       let child = treeList[item.errorCode].child;
       if (child[item.errorContent]) {
-        child[item.errorContent].count++;
+        if (item.count) {
+          child[item.errorContent].count += item.count;
+        } else {
+          child[item.errorContent].count++;
+        }
       } else {
         child[item.errorContent] = {
-          count: 1,
+          count: item.count,
           name: "错误内容：" + item.errorContent,
           content: item.errorContent,
           code: item.errorCode,
