@@ -204,7 +204,7 @@ function setTreeList(list: any[]) {
 async function downloadErrorCode() {
   if (!errorCode.value) return;
   let errorList = [];
-  for (let key in errorCode) {
+  for (let key in errorCode.value) {
     let errorItem = errorCode.value[key];
     let item: any = {};
     item.code = key;
