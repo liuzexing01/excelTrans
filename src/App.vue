@@ -36,9 +36,41 @@
       >
         下载未设置错误码
       </AButton>
+      <span>总数：{{ calcUnsetTotalCount() }}</span>
       <a-tree
         class="tree"
         :tree-data="unsetCode"
+        :fieldNames="{ children: 'child', title: 'name', key: 'name' }"
+      >
+        <template #title="{ name, count }">
+          {{ name }} ，数量{{ count }}</template
+        >
+      </a-tree>
+    </a-tab-pane>
+    <a-tab-pane key="4" tab="下载选中错误码" force-render>
+      <a-select
+        v-model:value="selectCode"
+        mode="multiple"
+        style="width: 20%"
+        placeholder="Please select"
+      >
+        <a-select-option
+          v-for="item in treeData"
+          :key="item.code"
+          :value="item.code"
+          :name="item.code"
+        ></a-select-option>
+      </a-select>
+      <AButton type="primary" class="down" @click="downloadSelectCode">
+        下载选中错误码
+      </AButton>
+      <AButton type="primary" class="down" @click="showTree">
+        展示tree
+      </AButton>
+      <span>总数：{{ calcTotalCount() }}</span>
+      <a-tree
+        class="tree"
+        :tree-data="selectCodeList"
         :fieldNames="{ children: 'child', title: 'name', key: 'name' }"
       >
         <template #title="{ name, count }">
@@ -152,7 +184,7 @@ function setBarOption(list: any[]) {
 }
 
 //设置树形列表process
-const treeData = ref([]);
+const treeData = ref<any[]>([]);
 function setTreeList(list: any[]) {
   let treeList: any = {};
   list.forEach((item) => {
@@ -180,7 +212,7 @@ function setTreeList(list: any[]) {
         }
       } else {
         child[item.errorContent] = {
-          count: item.count,
+          count: item.count || 1,
           name: "错误内容：" + item.errorContent,
           content: item.errorContent,
           code: item.errorCode,
@@ -290,6 +322,61 @@ function downloadUnsetCode() {
     };
   });
   downloadExcel(exportList);
+}
+
+const selectCode = ref<any>([]);
+function downloadSelectCode() {
+  if (!selectCode.value?.length) return;
+
+  let list: any[] = [];
+  treeData.value.forEach((item: any) => {
+    if (selectCode.value.includes(item.code)) {
+      list = list.concat(Object.values(item.child));
+    }
+  });
+  let exportList = list.map((item: any) => {
+    return {
+      错误码: item.code,
+      数量: item.count,
+      错误内容: item.content,
+    };
+  });
+  downloadExcel(exportList);
+}
+
+const selectCodeList = ref<any[]>();
+function showTree() {
+  if (!selectCode.value?.length) return;
+
+  selectCodeList.value = treeData.value.filter((item: any) => {
+    return selectCode.value.includes(item.code);
+  });
+}
+
+function calcTotalCount() {
+  if (!selectCode.value?.length) return 0;
+  let list: any[] = [];
+  treeData.value.forEach((item: any) => {
+    if (selectCode.value.includes(item.code)) {
+      list = list.concat(Object.values(item.child));
+    }
+  });
+
+  return list.reduce((pre, cur) => {
+    return pre + cur.count;
+  }, 0);
+}
+
+function calcUnsetTotalCount() {
+  if (!unsetCode.value?.length) return 0;
+  let list: any[] = [];
+
+  unsetCode.value.forEach((item: any) => {
+    list = list.concat(Object.values(item.child));
+  });
+  return list.reduce((pre, cur) => {
+    return pre + cur.count;
+  }, 0);
 }
 </script>
 
