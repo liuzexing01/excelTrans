@@ -33,13 +33,12 @@ jobs:
       - name: Zip Dist
         run: zip -r dist.zip dist
       # 创建Release
-      - name: Create Release1
+      - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
         with:
-          tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
