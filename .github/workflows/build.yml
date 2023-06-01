@@ -6,8 +6,7 @@ permissions:
 
 # 推送的tag中以v开头则执行此action
 on:
-  push:
-      - "*"
+  push
 
 jobs:
   build-release:
