@@ -7,7 +7,7 @@
   >
     <AButton type="primary">上传文件</AButton>
     <AButton type="primary" class="down" @click.stop="downloadErrorCode"
-      >下载完整错误码</AButton
+      >下载完整错误码1</AButton
     >
   </ImportExcel>
 

@@ -33,7 +33,7 @@ jobs:
       - name: Zip Dist
         run: zip -r dist.zip dist
       # 创建Release
-      - name: Create Release
+      - name: Create Release1
         id: create_release
         uses: actions/create-release@v1
         env:
