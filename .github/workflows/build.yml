@@ -21,13 +21,13 @@ jobs:
         with:
           node-version: '14.18.0'
       # 设置源
-      - name: "Install dependencies"
+      - name: "set registry"
         run: npm set registry https://npm.code.hzmantu.com/
       # 安装依赖
-      - name: "Install dependencies"
+      - name: "Install"
         run: npm install
       # 执行构建命令
-      - name: "Install dependencies"
+      - name: "run"
         run: npm run build-only
       # 将dist目录打成zip包
       - name: Zip Dist
